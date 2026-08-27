@@ -1,0 +1,11 @@
+# AI Code Review Assistant Agent — dependencies
+# Python 3.14
+
+# HTTP calls to the GitHub API
+requests>=2.32.0
+
+# Load configuration and secrets from .env
+python-dotenv>=1.0.1
+
+# Anthropic LLM client for code analysis
+anthropic>=0.40.0
