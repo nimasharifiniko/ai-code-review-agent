@@ -2,7 +2,7 @@
 GitHub API client for retrieving Pull Request information.
 
 This module provides a clean abstraction for interacting with the GitHub REST API
-to fetch changed files from a Pull Request with full pagination support.
+to fetch changed files and diff information from a Pull Request with full pagination support.
 """
 
 import requests
@@ -36,6 +36,21 @@ class ChangedFile:
     patch: Optional[str] = None
 
 
+@dataclass
+class DiffEntry:
+    """
+    Simplified representation of a diff for a single file.
+
+    Attributes:
+        filename: Path to the file in the repository.
+        status: Status of the change (modified, added, removed, renamed, etc.).
+        patch: The git patch diff for the file (may be None if not available).
+    """
+    filename: str
+    status: str
+    patch: Optional[str] = None
+
+
 class GitHubClient:
     """
     Client for interacting with the GitHub REST API.
@@ -46,6 +61,7 @@ class GitHubClient:
     Example:
         client = GitHubClient(token="ghp_xxx")
         files = client.get_pull_request_files("owner", "repo", 123)
+        diff_entries = client.get_pull_request_diff("owner", "repo", 123)
     """
 
     BASE_URL = "https://api.github.com"
@@ -139,11 +155,9 @@ class GitHubClient:
             next_url = self._extract_next_link(response.headers.get("Link", ""))
             if next_url:
                 url = next_url
-                # params are already included in the next URL, so reset them
                 params = None
             else:
                 # Fallback: manual page increment (if no Link header)
-                # This should not happen for modern GitHub API, but kept for safety.
                 if "page" not in params:
                     params["page"] = 1
                 params["page"] += 1
@@ -169,7 +183,6 @@ class GitHubClient:
         for link in link_header.split(","):
             parts = link.split(";")
             if len(parts) == 2 and parts[1].strip() == 'rel="next"':
-                # Extract URL between < and >
                 url = parts[0].strip()
                 if url.startswith("<") and url.endswith(">"):
                     return url[1:-1]
@@ -205,7 +218,6 @@ class GitHubClient:
         url = f"{self.BASE_URL}/repos/{owner}/{repo}/pulls/{pull_number}/files"
         raw_files = self._paginated_get(url, per_page=per_page)
 
-        # Convert raw dicts to ChangedFile objects
         changed_files = []
         for raw in raw_files:
             changed_files.append(
@@ -219,3 +231,44 @@ class GitHubClient:
                 )
             )
         return changed_files
+
+    def get_pull_request_diff(
+        self,
+        owner: str,
+        repo: str,
+        pull_number: int,
+        per_page: int = 100,
+    ) -> List[DiffEntry]:
+        """
+        Retrieve diff information for all files changed in a Pull Request.
+
+        This method provides a focused abstraction for obtaining the diff content,
+        reusing the same underlying API call as get_pull_request_files() but
+        returning a simplified structure containing only filename, status, and patch.
+
+        Args:
+            owner: Repository owner (user or organization).
+            repo: Repository name.
+            pull_number: Pull Request number.
+            per_page: Number of items per page (default 100, max 100).
+
+        Returns:
+            List of DiffEntry objects, each containing filename, status, and patch.
+
+        Raises:
+            GitHubAPIError: If the API call fails.
+        """
+        # Reuse the files endpoint to avoid duplicate requests
+        changed_files = self.get_pull_request_files(owner, repo, pull_number, per_page)
+
+        # Map to simplified DiffEntry objects
+        diff_entries = []
+        for file in changed_files:
+            diff_entries.append(
+                DiffEntry(
+                    filename=file.filename,
+                    status=file.status,
+                    patch=file.patch,
+                )
+            )
+        return diff_entries
