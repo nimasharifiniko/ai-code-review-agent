@@ -90,7 +90,12 @@ jobs:
             "${{ github.repository_owner }}" \
             "${{ github.event.repository.name }}" \
             "${{ github.event.pull_request.number }}" \
-            > review.md
+            > review.md || {
+              status=$?
+              echo "AI Code Review agent failed:"
+              cat review.md
+              exit $status
+            }
 
       - name: Post review as Pull Request comment
         run: |
