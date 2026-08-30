@@ -126,6 +126,15 @@ def _analyze(diff: str) -> list:
     try:
         return analyze_diff(diff)
     except Exception as exc:
+        # Log the underlying exception (type, message, and traceback)
+        # before wrapping it in a safe AgentError. This is diagnostic
+        # only — it never logs the diff itself, tokens, API keys, or
+        # environment variables.
+        logger.exception(
+            "LLM analysis failed: %s: %s",
+            type(exc).__name__,
+            exc,
+        )
         raise AgentError("Failed to analyze the Pull Request diff.") from exc
 
 
