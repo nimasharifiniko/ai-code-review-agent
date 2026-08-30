@@ -42,7 +42,11 @@ jobs:
       LLM_PROVIDER: ollama
       OLLAMA_BASE_URL: http://127.0.0.1:11434
       OLLAMA_MODEL: qwen2.5-coder:7b
-      OLLAMA_TIMEOUT: "120"
+      # qwen2.5-coder:7b is intentionally retained for the MVP demo.
+      # GitHub-hosted runners can be slower than the developer's local
+      # RTX GPU, so this longer timeout is only a reliability margin
+      # for the demo, not a change in model or architecture.
+      OLLAMA_TIMEOUT: "600"
 
     steps:
       - name: Checkout repository
