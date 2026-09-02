@@ -1,6 +1,3 @@
-حتماً. این هم **کل README به‌صورت یک کد واحد** که می‌تونی کامل Copy کنی و مستقیم جایگزین محتوای فایل `README.md` کنی:
-
-````markdown
 # AI Code Review Agent
 
 An AI-powered code review agent that automatically reviews GitHub Pull Requests, analyzes changed code, validates findings, and posts actionable review comments directly to the Pull Request.
