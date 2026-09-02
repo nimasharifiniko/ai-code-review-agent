@@ -60,4 +60,4 @@ This MVP uses **Ollama** with **qwen2.5-coder:7b** — locally during developmen
 
 ## Status
 
-This is a working MVP demonstrated on Pull Requests in this repository. It is not tuned or benchmarked for production scale or large repositories.
+This is a working MVP demonstrated on Pull Requests in this repository. It is not tuned or benchmarked for production scale or large repositories..
